@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+}
+
+.uploadElement{
+  text-align: center;
+}
+
+.field {
+  display: flex;
+
+  .fieldLabel {
+    white-space: nowrap;
+  }
+
+  .fieldInput {
+    width: 100%;
+    // height: 5vh;
+  }
+}
+
+.contentTable {
+  width: 100%;
+  // display: flex;
+  td{
+    text-align: center;
+  }
+
+  .outsTd{
+    display: flex;
+    flex-direction: column;
+  }
+}
