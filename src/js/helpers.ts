@@ -49,4 +49,16 @@ const formatSize = (byteSize: number) => {
   }
 };
 
-export { download, arrayEquals, formatSize, getSafeName };
+const file2FFFile = (files: File[] | FileList) => {
+  return [...files].map((f) => {
+    return {
+      name: f.name,
+      url: URL.createObjectURL(f),
+      size: f.size, 
+      wasUploaded: true,
+      srcFile: f
+    }
+  });
+};
+
+export { download, arrayEquals, formatSize, getSafeName, file2FFFile };

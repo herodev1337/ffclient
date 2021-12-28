@@ -1,5 +1,6 @@
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { arrayEquals } from "./helpers";
+import {FFFile} from "../types"
 
 
 const mapNumber =  (value:number, in_min:number, in_max:number, out_min:number, out_max:number) => {
@@ -72,16 +73,16 @@ class ConvertEngine {
     }
   }
 
-  async importFiles(files: File[]) {
+  async importFiles(files: FFFile[]) {
     for (let f of files) {
-      ffmpeg.FS("writeFile", f.name, await fetchFile(f));
+      ffmpeg.FS("writeFile", f.name, await fetchFile(f.srcFile));
     }
   }
 
   async convertFiles(
     cmd: string[],
-    inputs: File[]
-  ): Promise<OutputFile[] | undefined> {
+    inputs: FFFile[]
+  ): Promise<FFFile[] | undefined> {
     if (!this.readdir().length) return;
 
     const infiles = inputs.map((f) => f.name);
@@ -106,7 +107,7 @@ class ConvertEngine {
       const data = ffmpeg.FS("readFile", file);
       const blob = new Blob([data.buffer]);
       const url = URL.createObjectURL(blob);
-      return { name: file, url: url, size: blob.size, blob: blob };
+      return { name: file, url: url, size: blob.size, srcFile: blob, wasUploaded: false };
     });
   }
 }

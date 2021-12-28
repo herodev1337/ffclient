@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { OutputFile, ConvertEngine } from "./convert";
 import {getSafeName} from "./helpers"
+import {FFFile} from "../types"
 
 // * Application states
 
@@ -8,11 +9,14 @@ class AppStates {
   loaded: boolean;
   setLoaded: (v: boolean) => void;
 
-  files: File[];
-  _setFiles: (v: File[]) => void;
+  files: FFFile[];
+  _setFiles: (v: FFFile[]) => void;
 
   outputs: OutputFile[];
   _setOutputs: (v: OutputFile[]) => void;
+
+  selected: string[];
+  setSelected: (v:string[] | ((v:string[])=>string[]))=>void;
 
   isPresets: boolean;
   setPresets: (v: boolean) => void;
@@ -28,8 +32,10 @@ class AppStates {
 
   constructor(engine: ConvertEngine, consoleRef:React.RefObject<HTMLTextAreaElement>) {
     [this.loaded, this.setLoaded] = useState<boolean>(false);
-    [this.files, this._setFiles] = useState<File[]>([]);
+    [this.files, this._setFiles] = useState<FFFile[]>([]);
     [this.outputs, this._setOutputs] = useState<OutputFile[]>([]);
+    [this.selected, this.setSelected] = useState<string[]>([]);
+
 
     [this.isPresets, this.setPresets] = useState<boolean>(false);
     [this.currentCommand, this._setCurrentCommand] = useState("");
@@ -39,7 +45,7 @@ class AppStates {
     this.consoleRef = consoleRef
   }
 
-  setFiles(files: File[]) {
+  setFiles(files: FFFile[]) {
     const noDups = this._cleanCmd(files);
     this._setFiles(noDups);
     this.engine.evalFS([...noDups, ...this.outputs].map((f)=>f.name));
@@ -51,7 +57,7 @@ class AppStates {
     this.setExecuting(false)
   }
 
-  addFiles(f: File[]) {
+  addFiles(f: FFFile[]) {
     this.setFiles([...this.files, ...f]);
     this.engine.importFiles(f);
   }
@@ -63,8 +69,8 @@ class AppStates {
     }
   }
 
-  _cleanCmd(files: File[]) {
-    const out: File[] = [];
+  _cleanCmd(files: FFFile[]) {
+    const out: FFFile[] = [];
     const seen: any = {};
 
     // Look for and remove duplicates
@@ -75,7 +81,6 @@ class AppStates {
         seen[file.name] = true;
         out.push(file);
         
-        // file.name = file.name.replace(" ", "_")
       }
     }
     return out.reverse();
