@@ -7,15 +7,8 @@ const mapNumber =  (value:number, in_min:number, in_max:number, out_min:number, 
   return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-export type OutputFile = {
-  name: string;
-  url: string;
-  size: number;
-  blob: Blob;
-};
-
 const ffmpeg = createFFmpeg({
-  log: false,
+  log: true,
   // logger: (msg) => {
   //   // if (msg.type === "fferr") console.log(msg.message);
   //   if (msg.message.toLowerCase().includes("stream")) console.log(msg.message);
@@ -25,7 +18,7 @@ const ffmpeg = createFFmpeg({
 ffmpeg.setProgress(({ ratio }) => {
   const curRatio = ratio < 1 ? ratio * 100 : ratio/10;
   // console.log("Progress: ", curRatio);
-  console.log("Progress: ", mapNumber(ratio, 0, ratio > 1 ? 1000 : 1, 0, 100));
+  // console.log("Progress: ", mapNumber(ratio, 0, ratio > 1 ? 1000 : 1, 0, 100));
   document.documentElement.style.setProperty('--cmdBtnProgress', `${curRatio}%`);
 })
 
@@ -58,14 +51,13 @@ class ConvertEngine {
         return true;
       })
       .map((v) => v.replaceAll(`\"`, ""));
-    console.log("STR: ", cmdStr)
-    console.log("SPLIT: ", split)
+    // console.log("STR: ", cmdStr)
+    // console.log("SPLIT: ", split)
 
     return split;
   }
 
   evalFS(files: string[]) {
-    //  for (let i = 0; i < this.readdir().length; i){
     for (let entry of this.readdir()) {
       if (!files.includes(entry)) {
         ffmpeg.FS("unlink", entry);
@@ -92,8 +84,6 @@ class ConvertEngine {
     const outs = ffmpeg.FS("readdir", "/").filter((entry: string) => {
       return !dirDefaults.includes(entry) && !infiles.includes(entry);
     });
-
-    console.log(outs)
 
     return this._buildUrls(outs);
   }

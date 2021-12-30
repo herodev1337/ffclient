@@ -1,6 +1,5 @@
 import React, { useState, useContext } from "react";
-import { OutputFile, ConvertEngine } from "./convert";
-import {getSafeName} from "./helpers"
+import { ConvertEngine } from "./convert";
 import {FFFile} from "../types"
 
 // * Application states
@@ -11,9 +10,6 @@ class AppStates {
 
   files: FFFile[];
   _setFiles: (v: FFFile[]) => void;
-
-  outputs: OutputFile[];
-  _setOutputs: (v: OutputFile[]) => void;
 
   selected: string[];
   setSelected: (v:string[] | ((v:string[])=>string[]))=>void;
@@ -33,9 +29,7 @@ class AppStates {
   constructor(engine: ConvertEngine, consoleRef:React.RefObject<HTMLTextAreaElement>) {
     [this.loaded, this.setLoaded] = useState<boolean>(false);
     [this.files, this._setFiles] = useState<FFFile[]>([]);
-    [this.outputs, this._setOutputs] = useState<OutputFile[]>([]);
     [this.selected, this.setSelected] = useState<string[]>([]);
-
 
     [this.isPresets, this.setPresets] = useState<boolean>(false);
     [this.currentCommand, this._setCurrentCommand] = useState("");
@@ -48,13 +42,7 @@ class AppStates {
   setFiles(files: FFFile[]) {
     const noDups = this._cleanCmd(files);
     this._setFiles(noDups);
-    this.engine.evalFS([...noDups, ...this.outputs].map((f)=>f.name));
-  }
-
-  setOutputs(files: OutputFile[]) {
-    this._setOutputs(files);
-    this.engine.evalFS([...this.files, ...files].map((f)=>f.name))
-    this.setExecuting(false)
+    this.engine.evalFS(noDups.map((f)=>f.name));
   }
 
   addFiles(f: FFFile[]) {
@@ -94,7 +82,6 @@ interface props {
   children: any;
 }
 
-// const AppStatesContext = React.createContext<AppStates | typeof init>(init);
 const AppStatesContext = React.createContext<AppStates>({} as AppStates);
 
 const AppStatesProvider = ({ value, children }: props) => {

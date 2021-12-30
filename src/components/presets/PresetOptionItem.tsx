@@ -1,6 +1,11 @@
 import React from "react";
 
-const PresetOptionItem = ({defaultChecked, text}:any) => {
+interface props {
+  defaultChecked: boolean;
+  text:string;
+}
+
+const PresetOptionItem = ({defaultChecked, text}:props) => {
   return (
     <label className="option">
       <div className="text">{text}</div>

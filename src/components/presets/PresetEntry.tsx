@@ -1,13 +1,18 @@
-import React from "react";
+import React, {useEffect} from "react";
 import SwitchToggle from "../SwitchToggle";
 
-const PresetEntry = ({text, onChange}:any) => {
+interface props {
+  text:string;
+  onChange: (e?:React.ChangeEvent<HTMLInputElement>)=>void;
+}
+
+const PresetEntry = ({text, onChange}:props) => {
   return (
     <div className="videoEntry entry">
       <div className="switchText">{text}</div>
       <SwitchToggle
         id={`${text}Switch`}
-        onChange={(e)=>onChange(e, text)}
+        onChange={onChange}
       />
     </div>
   );

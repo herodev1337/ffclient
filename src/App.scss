@@ -36,8 +36,6 @@
   }
 }
 
-
-
 :root {
   --roboto: "Roboto", sans-serif;
 
@@ -70,7 +68,6 @@
     transform: translateY(0) rotate(90deg);
   }
 }
-
 
 @keyframes runCmdSlides_neg {
   0% {
@@ -107,9 +104,6 @@ body {
 }
 
 #root {
-  // @include frostedGlass(var(--frostedWhite), 0.8, 20px);
-  // width: 100vw;
-  // height: 100vh;
   --height: 80vh;
 
   .App {
@@ -117,28 +111,15 @@ body {
     height: 100vh;
     align-items: center;
     justify-content: space-around;
-    // gap: min(10vh, 10vw);
-    // gap: clamp(10vh, 10px, 10vw);
-
-    // padding: 10vh 15vh;
 
     .mainCardHolder {
-      // margin-right: 25%;
-
+      // @include cardTemplate(var(--height));
       & * {
         // border-top: 1px solid black;
         // border-bottom: 1px solid black;
       }
 
       .mainCard {
-        // --height: 50vh;
-
-        // border-radius: 1.5vh;
-        // width: min(50vw, 50vh);
-        // height: var(--height);
-        // box-shadow: 2px 2px 20px 10px rgb(0 0 0 / 10%);
-        // overflow: hidden;
-
         @include cardTemplate(var(--height));
 
         display: flex;
@@ -146,9 +127,6 @@ body {
 
         .inputs,
         .outputs {
-          &::-webkit-scrollbar {
-            width: 0;
-          }
           padding: 0% 3%;
           // height: calc(var(--height) / 2);
           height: var(--height);
@@ -174,6 +152,7 @@ body {
 
             border-top: 0.5px solid rgba(0, 0, 0, 0.05);
             border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+            border-left: 0vh solid var(--highlight1);
             transition: border-left 350ms ease;
 
             .closeIcon,
@@ -219,8 +198,53 @@ body {
           }
         }
 
+        .title{
+          // border-top: 1px solid rgba(0, 0, 0, 0.1);
+          // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          padding: 2% 5%;
+
+          .top{
+            font-family: var(--roboto);
+            font-size: 2em;
+            font-weight: 500;
+          }
+        }
+
+        .readmes {
+          border-top: 1px solid rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          padding: 2% 5%;
+          .switchText {
+            font-weight: 200;
+            font-size: .85em;
+          }
+        }
+
         .uploadField,
         .field {
+          &.starter {
+            cursor: default;
+            height: 20vh;
+            padding-left: 10%;
+
+            * {
+              cursor: pointer;
+            }
+
+            .switchText {
+              &.small {
+                font-size: 0.7em;
+              }
+              font-size: 1.5em;
+            }
+
+            .uploadIcon {
+              width: 7vh;
+              height: 7vh;
+              font-size: 0.8rem;
+            }
+          }
+
           cursor: pointer;
           border-top: 1px solid rgba(0, 0, 0, 0.1);
           // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -292,7 +316,15 @@ body {
     }
 
     .functionCardHolder {
+      &.active {
+        transform: scale(1);
+      }
       height: var(--height);
+
+      height: var(--height);
+      transition: transform 500ms ease;
+      transform: scaleX(0) scaleY(0.25);
+      transform-origin: left top;
 
       .functionCard {
         // --height: 50vh;
@@ -305,6 +337,8 @@ body {
         flex-direction: column;
         // padding: 2% 1%;
         overflow-y: overlay;
+        transition: height 500ms ease;
+        scroll-behavior: smooth;
 
         #consoleInput {
           background: #f4f4f4;
@@ -322,7 +356,7 @@ body {
           display: block;
           word-wrap: break-word;
           // height: calc(var(--height) / 3 * 2.25);
-          height: 15vh;
+          min-height: 15vh;
           resize: none;
           outline: none;
           border-top-left-radius: 1.5vh;
@@ -405,7 +439,7 @@ body {
               }
 
               .icon {
-                &.active{
+                &.active {
                   animation: runCmdSlides_neg 2.5s ease infinite;
                 }
                 animation: runCmdSlides_norm 2.5s ease infinite;
@@ -434,6 +468,7 @@ body {
               display: flex;
               gap: 1vh;
               align-items: center;
+              cursor: pointer;
 
               .text {
                 color: hsla(0, 0%, 40%, 0.788);
@@ -444,6 +479,10 @@ body {
               input[type="radio"] {
                 position: relative;
                 margin: 0 0%;
+
+                &:hover {
+                  background-color: #ccc;
+                }
 
                 &:checked {
                   background-color: #2196f3;
@@ -580,72 +619,64 @@ body {
   margin-right: -1.5vh;
 }
 
+.loadingHolder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  .switchText {
+    // margin: 0%;
+    font-size: 2em;
+  }
+
+  .loadingCircle {
+    border: 0.5vh solid #f3f3f3; /* Light grey */
+    border-top: 0.5vh solid var(--highlight1); /* Blue */
+    border-radius: 50%;
+    width: 7vh;
+    height: 7vh;
+    animation: spin 2s linear infinite;
+  }
+}
+
+.presetsPrimary-enter {
+  opacity: 0;
+  // transform: scaleY(0);
+  // height:35vh;
+}
+
+.presetsPrimary-enter-active {
+  opacity: 1;
+  // transform: scaleY(1);
+  // height:80vh;
+  transition: all 500ms ease;
+}
+
+.presetsPrimary-exit {
+  opacity: 1;
+  // transform: scaleY(1);
+  // height: 80vh;
+}
+
+.presetsPrimary-exit-active {
+  opacity: 0;
+  // transform: scaleY(0);
+  // height: 35vh;
+  transition: all 500ms ease;
+}
+
 @media only screen and (max-width: 600px) {
   #root {
     .App {
       flex-direction: column;
+      height: auto;
+      gap: 1vh;
 
       .mainCard,
       .functionCard {
         width: 80vw !important;
       }
     }
-  }
-}
-
-.lds-ellipsis {
-  display: inline-block;
-  position: relative;
-  width: 80px;
-  height: 80px;
-  transform: scale(0.5);
-}
-.lds-ellipsis div {
-  position: absolute;
-  top: 33px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: rgb(0, 0, 0);
-  animation-timing-function: cubic-bezier(0, 1, 1, 0);
-}
-.lds-ellipsis div:nth-child(1) {
-  left: 8px;
-  animation: lds-ellipsis1 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(2) {
-  left: 8px;
-  animation: lds-ellipsis2 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(3) {
-  left: 32px;
-  animation: lds-ellipsis2 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(4) {
-  left: 56px;
-  animation: lds-ellipsis3 0.6s infinite;
-}
-@keyframes lds-ellipsis1 {
-  0% {
-    transform: scale(0);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-@keyframes lds-ellipsis3 {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(0);
-  }
-}
-@keyframes lds-ellipsis2 {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(24px, 0);
   }
 }

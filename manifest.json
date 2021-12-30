@@ -1,0 +1,47 @@
+{
+    "short_name": "FFClient",
+    "name": "FFClient | Online Converter",
+    "icons": [
+        {
+            "src": "/src/static/icons/android-icon-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-57x57.png",
+            "type": "image/png",
+            "sizes": "57x57"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-60x60.png",
+            "type": "image/png",
+            "sizes": "60x60"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-72x72.png",
+            "type": "image/png",
+            "sizes": "72x72"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-114x114.png",
+            "type": "image/png",
+            "sizes": "114x114"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-144x144.png",
+            "type": "image/png",
+            "sizes": "144x144"
+        },
+        {
+            "src": "/src/static/icons/apple-touch-icon-180x180.png",
+            "type": "image/png",
+            "sizes": "180x180"
+        }
+    ],
+    "start_url": "/index.html",
+    "background_color": "#c09cd8",
+    "display": "standalone",
+    "scope": "/ffclient/",
+    "theme_color": "#ebc2da",
+    "description": "FFMPEG based web implementation. General media converter/encoder."
+}

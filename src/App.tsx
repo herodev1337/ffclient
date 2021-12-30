@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { CSSTransition } from "react-transition-group";
 import JSZip from "jszip";
 
 import { AppStates, AppStatesProvider } from "./js/states";
@@ -8,16 +9,16 @@ import { download, file2FFFile } from "./js/helpers";
 import FAComponent from "./components/FAComponent";
 import Inputs from "./components/inputs/Inputs";
 import SwitchToggle from "./components/SwitchToggle";
-import PresetOptionItem from "./components/functionCard/PresetOptionItem";
-import PresetEntry from "./components/functionCard/PresetEntry";
+import Presets from "./components/presets/Presets";
+import PresetOptionItem from "./components/presets/PresetOptionItem";
+import PresetEntry from "./components/presets/PresetEntry";
 
 import "./App.scss";
 
-import bg_img from "./static/bg_layered.svg";
-
-const videoPresets = ["AVI", "MP4", "WEBM", "MPEG", "MOV", "FLV"]
+const videoPresets = ["AVI", "MP4", "WEBM", "MPEG", "MOV", "FLV"];
 
 const App = (): JSX.Element => {
+  const fileinputRefStarter = useRef<HTMLInputElement>(null);
   const fileinputRef = useRef<HTMLInputElement>(null);
   const consoleInputRef = useRef<HTMLTextAreaElement>(null);
   const commandBtnRef = useRef<HTMLDivElement>(null);
@@ -26,12 +27,13 @@ const App = (): JSX.Element => {
     uploaded: true,
     all: false,
   });
+  const presetsNodeRef = useRef(null);
+  const functionCardNodeRef = useRef<HTMLDivElement>(null);
 
   const convert = new ConvertEngine();
   const store = new AppStates(convert, consoleInputRef);
 
   useEffect(() => {
-    // document.documentElement.style.setProperty('--bg-img', `url('${bg_img}')`);
     convert.load(() => store.setLoaded(true));
   }, []);
 
@@ -75,17 +77,22 @@ const App = (): JSX.Element => {
     // console.log(presetsOptions.current)
   };
 
-  const uncheckSwitches = (ext:string)=>{
-    for (let preset of videoPresets){
-      if (preset !== ext){
-        const el = (document.getElementById(`${preset}Switch`) as HTMLInputElement)
+  const uncheckSwitches = (ext: string) => {
+    for (let preset of videoPresets) {
+      if (preset !== ext) {
+        const el = document.getElementById(
+          `${preset}Switch`
+        ) as HTMLInputElement;
         el.checked = false;
       }
     }
-  }
+  };
 
-  const presetOnChange = (e:React.ChangeEvent<HTMLInputElement>, ext:string) => {
-    uncheckSwitches(ext)
+  const presetOnChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    ext: string
+  ) => {
+    uncheckSwitches(ext);
     const loopables = getPresetsIterable();
     // const ext = ".avi";
     ext = `.${ext.toLocaleLowerCase()}`;
@@ -104,9 +111,7 @@ const App = (): JSX.Element => {
         const insert = ` -map ${i} `;
         cmd =
           cmd +
-          `-i ${filename}${
-            loopables.length > 1 ? insert : " "
-          }${outname} \n`;
+          `-i ${filename}${loopables.length > 1 ? insert : " "}${outname} \n`;
       }
     }
 
@@ -114,7 +119,7 @@ const App = (): JSX.Element => {
     const checked = e?.currentTarget?.checked;
     const actualCmd = checked ? newCmd : "";
     store.setCurrentCommand(actualCmd);
-  }
+  };
 
   return store.loaded ? (
     <AppStatesProvider value={store}>
@@ -123,97 +128,189 @@ const App = (): JSX.Element => {
 
         <div className="mainCardHolder">
           <div className="mainCard">
-            <Inputs />
+            {store.files.length ? (
+              <>
+                <Inputs />
 
-            <div
-              className="uploadField field"
-              onClick={() => {
-                fileinputRef.current?.click();
-              }}
-              title="Upload video or image files."
-            >
-              <input
-                style={{ display: "none" }}
-                ref={fileinputRef}
-                type="file"
-                multiple
-                onChange={(e) => {
-                  if (e.target.files) {
-                    store.addFiles(file2FFFile(e.target.files));
-                  }
-                }}
-              />
-              <FAComponent className="uploadIcon icon" icon="fas fa-plus" />
-              <div className="uploadLabel">
-                <div className="upper">Add more files</div>
-                <div className="lower">{store.files.length} file(s)</div>
-              </div>
-            </div>
+                <div
+                  className="uploadField field"
+                  onClick={() => {
+                    fileinputRef.current?.click();
+                  }}
+                  title="Upload video or image files."
+                >
+                  <input
+                    style={{ display: "none" }}
+                    ref={fileinputRef}
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        store.addFiles(file2FFFile(e.target.files));
+                      }
+                    }}
+                  />
+                  <FAComponent className="uploadIcon icon" icon="fas fa-plus" />
+                  <div className="uploadLabel">
+                    <div className="upper">Add more files</div>
+                    <div className="lower">{store.files.length} file(s)</div>
+                  </div>
+                </div>
 
-            <div
-              className="downloadField field"
-              onClick={() => {
-                if (!store.files.length) return;
+                <div
+                  className="downloadField field"
+                  onClick={() => {
+                    if (!store.files.length) return;
 
-                let zip = new JSZip();
-                if (store.selected.length) {
-                  for (let f of store.files) {
-                    if (store.selected.includes(f.name)) {
-                      zip.file(f.name, f.srcFile);
+                    let zip = new JSZip();
+                    if (store.selected.length) {
+                      for (let f of store.files) {
+                        if (store.selected.includes(f.name)) {
+                          zip.file(f.name, f.srcFile);
+                        }
+                      }
+                    } else {
+                      for (let f of store.files) {
+                        zip.file(f.name, f.srcFile);
+                      }
                     }
+
+                    zip.generateAsync({ type: "blob" }).then(function (blob) {
+                      download(URL.createObjectURL(blob), "outputs.zip", false);
+                    });
+                  }}
+                  title={
+                    store.selected.length
+                      ? "Download all selected files, zipped up."
+                      : "Download all available files, zipped up."
                   }
-                } else {
-                  for (let f of store.files) {
-                    zip.file(f.name, f.srcFile);
-                  }
-                }
-
-                zip.generateAsync({ type: "blob" }).then(function (blob) {
-                  download(URL.createObjectURL(blob), "outputs.zip", false);
-                });
-
-                // let zip = new JSZip();
-                // for (let i = 0; i < store.outputs.length; i++) {
-                //   const output = store.outputs[i];
-                //   zip.file(output.name, output.blob);
-                // }
-
-                // zip.generateAsync({ type: "blob" }).then(function (blob) {
-                //   download(URL.createObjectURL(blob), "outputs.zip", false);
-                // });
-              }}
-              title={
-                store.selected.length
-                  ? "Download all selected files, zipped up."
-                  : "Download all available files, zipped up."
-              }
-            >
-              <div className="downloadLabel">
-                <div className="buttonIcon">
-                  {[...Array(3).keys()].map((_, i) => {
-                    return (
-                      <FAComponent
-                        key={i}
-                        className="carrot left icon"
-                        icon="fas fa-caret-down"
-                        style={{ animationDelay: `${i}00ms` }}
+                >
+                  <div className="downloadLabel">
+                    <div className="buttonIcon">
+                      {[...Array(3).keys()].map((_, i) => {
+                        return (
+                          <FAComponent
+                            key={i}
+                            className="carrot left icon"
+                            icon="fas fa-caret-down"
+                            style={{ animationDelay: `${i}00ms` }}
+                          />
+                        );
+                      })}
+                    </div>
+                    <div className="right">
+                      Download
+                      {store.selected.length
+                        ? ` ${store.selected.length} file(s)`
+                        : " All"}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="uploadField starter">
+                  <div
+                    onClick={() => fileinputRefStarter.current?.click()}
+                    style={{
+                      display: "flex",
+                      gap: "1vh",
+                      alignItems: "center",
+                    }}
+                  >
+                    <FAComponent
+                      className="uploadIcon icon"
+                      icon="fas fa-plus"
+                    />
+                    <div className="textBlock">
+                      <input
+                        style={{ display: "none" }}
+                        ref={fileinputRefStarter}
+                        type="file"
+                        multiple
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            store.addFiles(file2FFFile(e.target.files));
+                          }
+                        }}
                       />
-                    );
-                  })}
+                      <div className="switchText">Upload Files</div>
+                      <div className="switchText small">
+                        Videos, Images and Audio
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="right">
-                  Download
-                  {store.selected.length
-                    ? ` ${store.selected.length} file(s)`
-                    : " All"}
+
+                <div className="title">
+                  <div className="switchText top">FFClient</div>
+                  <div className="switchText body">A web-based ffmpeg converter/console.</div>
+                  <div className="switchText">Powered by FFMPEG WASM.</div>
                 </div>
-              </div>
-            </div>
+
+                <div className="readmes">
+                  <div className="switchText">
+                    Read more about FFMPEG{" "}
+                    <a
+                      className="switchText"
+                      href="https://www.ffmpeg.org/about.html"
+                      target="_blank"
+                    >
+                      here.
+                    </a>
+                  </div>
+                  <div className="switchText">
+                    Read more about FFMPEG WASM{" "}
+                    <a
+                      className="switchText"
+                      href="https://ffmpegwasm.netlify.app/"
+                      target="_blank"
+                    >
+                      here.
+                    </a>
+                  </div>
+                  <div className="switchText">
+                    Getting started with FFMPEG{" "}
+                    <a
+                      className="switchText"
+                      href="https://opensource.com/article/17/6/ffmpeg-convert-media-file-formats"
+                      target="_blank"
+                    >
+                      here.
+                    </a>
+                  </div>
+                  <div className="switchText">
+                    Getting started with FFMPEG WASM{" "}
+                    <a
+                      className="switchText"
+                      href="https://github.com/ffmpegwasm/ffmpeg.wasm"
+                      target="_blank"
+                    >
+                      here.
+                    </a>
+                  </div>
+                  <div className="switchText">
+                    Find source code{" "}
+                    <a
+                      className="switchText"
+                      href="https://github.com/fsImageries/ffclient"
+                      target="_blank"
+                    >
+                      here.
+                    </a>
+                  </div>
+                </div>
+
+              </>
+            )}
           </div>
         </div>
 
-        <div className="functionCardHolder">
+        <div
+          className={`functionCardHolder ${store.files.length ? "active" : ""}`}
+        >
           <div
+            ref={functionCardNodeRef}
             className="functionCard"
             style={{ height: store.isPresets ? "80vh" : "30vh" }}
           >
@@ -222,8 +319,6 @@ const App = (): JSX.Element => {
               ref={consoleInputRef}
               id="consoleInput"
               spellCheck={false}
-              // type="text"
-              // value={store.currentCommand}
               onKeyUp={async (e) => {
                 store.setCurrentCommand(e.currentTarget.value);
                 if (e.key === "Enter" && e.shiftKey && store.files) {
@@ -240,7 +335,15 @@ const App = (): JSX.Element => {
                   id="PresetToggle"
                   onChange={(e) => {
                     const checked = e?.currentTarget.checked;
-                    if (checked !== undefined) store.setPresets(checked);
+                    if (checked !== undefined) {
+                      if (!checked) {
+                        functionCardNodeRef.current?.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }
+                      store.setPresets(checked);
+                    }
                   }}
                 />
               </div>
@@ -248,7 +351,11 @@ const App = (): JSX.Element => {
               <div
                 className="command"
                 ref={commandBtnRef}
-                title="Execute the current command."
+                title={
+                  store.isExecuting
+                    ? "Executing current command..."
+                    : "Execute the current command."
+                }
                 onClick={() => {
                   runCommand();
                 }}
@@ -260,86 +367,36 @@ const App = (): JSX.Element => {
                     transform: "rotate(90deg)",
                   }}
                 >
-                  {/* {store.isExecuting ? (
-                    <div className="ringLoader"></div>
-                  ) : (
-                    [...Array(3).keys()].map((_, i) => {
-                      return (
-                        <FAComponent
-                          key={i}
-                          className="carrot left icon"
-                          icon="fas fa-angle-left"
-                          style={{ animationDelay: `${i}00ms` }}
-                        />
-                      );
-                    })
-                  )} */}
-
                   {[...Array(3).keys()].map((_, i) => {
-                      return (
-                        <FAComponent
-                          key={i}
-                          className={`carrot left icon ${store.isExecuting ? "active" : ""}`}
-                          icon="fas fa-angle-left"
-                          style={{ animationDelay: `${i}00ms` }}
-                        />
-                      );
-                    })}
+                    return (
+                      <FAComponent
+                        key={i}
+                        className={`carrot left icon ${
+                          store.isExecuting ? "active" : ""
+                        }`}
+                        icon="fas fa-angle-left"
+                        style={{ animationDelay: `${i}00ms` }}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {store.isPresets && (
-              <div className="presetsField">
-                <div className="switchText" style={{ padding: "1% 2%" }}>
-                  Apply to
-                </div>
-                <div className="presetsOptions" onChange={switchRadioButton}>
-                  {["Uploaded", "Selected", "All"].map((v, i) => (
-                    <PresetOptionItem key={i} defaultChecked={!i} text={v} />
-                  ))}
-                </div>
-                <div className="switchText" style={{ padding: "1% 2%" }}>
-                  Convert to
-                </div>
-                <div className="presetsHolder">
-                  <div className="videoField presetField">
-                    <div className="switchText">Videofiles</div>
-                    {/* <PresetEntry text={"AVI"} onChange={presetOnChange}/>
-                    <PresetEntry text={"MP4"} onChange={presetOnChange}/> */}
-                    {videoPresets.map(v=><PresetEntry text={v} onChange={presetOnChange}/>)}
-                  </div>
-
-                  <div className="imageField presetField">
-                    <div className="switchText">Imagefiles</div>
-                    <div className="imageEntry entry">
-                      <div className="switchText">JPG</div>
-                      <SwitchToggle
-                        // id="PresetToggle"
-                        onChange={() => {
-                          // store.setPresets(!store.isPresets)
-                          console.log("To JPG");
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="audioField presetField">
-                    <div className="switchText">Audiofiles</div>
-                    <div className="audioEntry entry">
-                      <div className="switchText">MP3</div>
-                      <SwitchToggle
-                        // id="PresetToggle"
-                        onChange={() =>
-                          // store.setPresets(!store.isPresets)
-                          console.log("To MP3")
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <CSSTransition
+              nodeRef={presetsNodeRef}
+              in={store.isPresets}
+              unmountOnExit
+              timeout={500}
+              classNames={"presetsPrimary"}
+            >
+              <Presets
+                ref={presetsNodeRef}
+                videoPresets={videoPresets}
+                switchRadioButton={switchRadioButton}
+                presetOnChange={presetOnChange}
+              />
+            </CSSTransition>
           </div>
 
           {/* <button onClick={() => console.log(convert.readdir())}>
@@ -351,7 +408,9 @@ const App = (): JSX.Element => {
       </div>
     </AppStatesProvider>
   ) : (
-    <p>Loading...</p>
+    <div className="loadingHolder">
+      <div className="loadingCircle"></div>
+    </div>
   );
 };
 
